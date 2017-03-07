@@ -197,10 +197,8 @@ public:
 
         tess.SetImage((uchar*)image.data, image.size().width, image.size().height, image.channels(), image.step1());
         tess.Recognize(0);
-        char *outText;
-        outText = tess.GetUTF8Text();
-        output = string(outText);
-        delete [] outText;
+        Ptr<char> outText = Ptr<char>(tess.GetUTF8Text());
+        output = string(outText.get());
 
         if ( (component_rects != NULL) || (component_texts != NULL) || (component_confidences != NULL) )
         {
@@ -211,7 +209,7 @@ public:
 
             if (ri != 0) {
                 do {
-                    const char* word = ri->GetUTF8Text(level);
+                    Ptr<char> word(ri->GetUTF8Text(level));
                     if (word == NULL)
                         continue;
                     float conf = ri->Confidence(level);
@@ -219,13 +217,11 @@ public:
                     ri->BoundingBox(level, &x1, &y1, &x2, &y2);
 
                     if (component_texts != 0)
-                        component_texts->push_back(string(word));
+                        component_texts->push_back(string(word.get()));
                     if (component_rects != 0)
                         component_rects->push_back(Rect(x1,y1,x2-x1,y2-y1));
                     if (component_confidences != 0)
                         component_confidences->push_back(conf);
-
-                    delete[] word;
                 } while (ri->Next(level));
             }
             delete ri;
